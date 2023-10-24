@@ -599,7 +599,6 @@ static inline int oslShowNeoflashLogo()		{
 #include "dialog.h"
 #include "osk.h"
 #include "saveload.h"
-#include "net.h"
 #include "browser.h"
 #include "adhoc/pspadhoc.h"
 #include "ccc.h"
