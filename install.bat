@@ -28,7 +28,6 @@ xcopy Install\oslib\intraFont\libccc.h %PSPSDKDIR%\include\oslib\intraFont\
 xcopy Install\oslib\libpspmath\pspmath.h %PSPSDKDIR%\include\oslib\libpspmath\
 xcopy Install\oslib\adhoc\pspadhoc.h %PSPSDKDIR%\include\oslib\adhoc\
 xcopy Install\oslib\oslmath.h %PSPSDKDIR%\include\oslib\
-xcopy Install\oslib\net.h %PSPSDKDIR%\include\oslib\
 xcopy Install\oslib\browser.h %PSPSDKDIR%\include\oslib\
 xcopy Install\oslib\audio.h %PSPSDKDIR%\include\oslib\
 xcopy Install\oslib\bgm.h %PSPSDKDIR%\include\oslib\

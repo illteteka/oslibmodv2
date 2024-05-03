@@ -35,10 +35,22 @@ static osl_audio_channelinfo AudioStatus[OSL_NUM_AUDIO_CHANNELS];
 
 volatile int osl_audioActive[OSL_NUM_AUDIO_CHANNELS];
 
+// I know this is bad, but I don't care
+float playback_speed_0 = 1.0;
+float playback_speed_1 = 1.0;
+
+void oslSetPlaybackSpeed(int channel, float speed)
+{
+	if (channel == 0)
+		playback_speed_0 = 1/speed; //idk anymore man, this is literally backwards land
+	else if (channel == 1)
+		playback_speed_1 = 1/speed;
+}
+
 /*void oslSetChannelVolume(int channel, int left, int right)
 {
-  osl_audioVoices[channel].volumeRight = right;
-  osl_audioVoices[channel].volumeLeft  = left;
+	osl_audioVoices[channel].volumeRight = right;
+	osl_audioVoices[channel].volumeLeft  = left;
 }*/
 
 void oslAudioChannelThreadCallback(int channel, void *buf, unsigned int reqn)
@@ -185,10 +197,10 @@ int oslAudioCreateChannel(int i, int format, int numSamples, OSL_SOUND *s)
 	char str[32];
 
 	AudioStatus[i].handle = -1;
-    AudioStatus[i].threadhandle = -1;
+		AudioStatus[i].threadhandle = -1;
 //    AudioStatus[i].volumeright = OSL_VOLUME_MAX;
 //    AudioStatus[i].volumeleft  = OSL_VOLUME_MAX;
-    AudioStatus[i].callback = 0;
+		AudioStatus[i].callback = 0;
 
 	//Définit le bon son pour la channel
 	setChannelSound(i, s);
@@ -291,76 +303,113 @@ int oslGetSoundChannel(OSL_SOUND *s)
 
 void oslDecodeWav(unsigned int i, void* buf, unsigned int length)
 {
-	unsigned int j, k, samples=1<<(osl_audioVoices[i].divider);
-	unsigned short *data = (unsigned short*)buf, cur1, cur2;
-	WAVE_SRC *wav = (WAVE_SRC*)osl_audioVoices[i].dataplus;
-	unsigned char *streambuffer;
-	int len;
-	if (wav->stream)
-	{
-		//Longueur du segment à lire sur la MS -> 16 bits = *2
-		len = (length * wav->fmt.bits_sample) >> 3;
-		if (samples == 1)
-			len <<= 1;
-		else
-		{
-			len>>=osl_audioVoices[i].divider;
-		}
-		if (osl_audioVoices[i].mono == 0)			//Stéréo
-			len <<= 1;
-		streambuffer = (unsigned char*)alloca(len);
-		VirtualFileRead(streambuffer, len, 1, wav->fp);
-		wav->streambuffer = streambuffer;
-	}
-	
+		unsigned int j, k, samples = 1 << (osl_audioVoices[i].divider);
+		unsigned short *data = (unsigned short *)buf, cur1, cur2;
+		WAVE_SRC *wav = (WAVE_SRC *)osl_audioVoices[i].dataplus;
+		unsigned char *streambuffer;
+		int len;
+		float playback_speed = 1.0; // Default playback speed
 
-	if (samples == 1)
-	{
-		if (osl_audioVoices[i].mono == 0)
-			length<<=1;
-		for (j=0;j<length;j++)
+		// Get playback speed for the specific channel
+		if (i == 1) // idk anymore man
+			playback_speed = playback_speed_0;
+		else if (i == 0)
+			playback_speed = playback_speed_1;
+
+		if (wav->stream)
 		{
-			*data++ = get_next_wav_sample(wav);
-		}
-	}
-	else
-	{
-		length>>=osl_audioVoices[i].divider;
-		if (osl_audioVoices[i].mono == 0)
-		{
-			//Stéréo
-			for (j=0;j<length;j++)
-			{
-				cur1 = get_next_wav_sample(wav);
-				cur2 = get_next_wav_sample(wav);
-				for (k=0;k<samples;k++)	
+				// Calculate the length of segment to read from the stream buffer
+				len = (length * wav->fmt.bits_sample) >> 3;
+				if (samples == 1)
+						len <<= 1;
+				else
 				{
-					*data++ = cur1;
-					*data++ = cur2;
+						len >>= osl_audioVoices[i].divider;
 				}
-			}
+				if (osl_audioVoices[i].mono == 0) // Stereo
+						len <<= 1;
+				streambuffer = (unsigned char *)alloca(len);
+				VirtualFileRead(streambuffer, len, 1, wav->fp);
+				wav->streambuffer = streambuffer;
 		}
-		else
+
+		// Calculate number of samples to read based on playback speed
+		unsigned int samples_to_read = (unsigned int)((float)length / playback_speed);
+
+		// Initialize sample index
+		unsigned int sample_index = 0;
+
+		// Adjust loop iterations based on playback speed
+		for (j = 0; j < samples_to_read; j++)
 		{
-			//Mono
-			for (j=0;j<length;j++)
-			{
-				cur1 = get_next_wav_sample(wav);
-				for (k=0;k<samples;k++)
-					*data++ = cur1;
-			}
+				if (samples == 1)
+				{
+						if (osl_audioVoices[i].mono == 0) // Stereo
+								length <<= 1;
+						for (k = 0; k < length; k++)
+						{
+								// Read next sample
+								*data++ = get_next_wav_sample(wav);
+								// Increment sample index
+								sample_index++;
+								// Check if sample index reaches the limit
+								if (sample_index >= samples_to_read)
+										break;
+						}
+				}
+				else
+				{
+						length >>= osl_audioVoices[i].divider;
+						if (osl_audioVoices[i].mono == 0) // Stereo
+						{
+								for (k = 0; k < length; k++)
+								{
+										cur1 = get_next_wav_sample(wav);
+										cur2 = get_next_wav_sample(wav);
+										for (unsigned int l = 0; l < samples; l++)
+										{
+												*data++ = cur1;
+												*data++ = cur2;
+										}
+										// Increment sample index
+										sample_index++;
+										// Check if sample index reaches the limit
+										if (sample_index >= samples_to_read)
+												break;
+								}
+						}
+						else // Mono
+						{
+								for (k = 0; k < length; k++)
+								{
+										cur1 = get_next_wav_sample(wav);
+										for (unsigned int l = 0; l < samples; l++)
+										{
+												*data++ = cur1;
+										}
+										// Increment sample index
+										sample_index++;
+										// Check if sample index reaches the limit
+										if (sample_index >= samples_to_read)
+												break;
+								}
+						}
+				}
+				// Check if sample index reaches the limit
+				if (sample_index >= samples_to_read)
+						break;
 		}
-	}
-	//Terminé, les poteaux
-	if (wav->chunk_left <= 0)
-	{
-		if (osl_audioVoices[i].sound->endCallback)
+
+		// Check if audio playback is finished
+		if (wav->chunk_left <= 0)
 		{
-			if (osl_audioVoices[i].sound->endCallback(osl_audioVoices[i].sound, i))
-				return;
+				if (osl_audioVoices[i].sound->endCallback)
+				{
+						if (osl_audioVoices[i].sound->endCallback(osl_audioVoices[i].sound, i))
+								return;
+				}
+				oslAudioDeleteChannel(i);
 		}
-		oslAudioDeleteChannel(i);
-	}
 }
 
 /* Fonction utilisée pour remplir le buffer audio (44'100 Hz, 16 bits, Mono) */
@@ -589,13 +638,11 @@ void oslPauseSound(OSL_SOUND *s, int pause)
 */
 void oslAudioCallback_PlaySound_WAV(OSL_SOUND *s)
 {
-//	if (s->format == OSL_FMT_WAV) {
 		if (s->isStreamed)
 			VirtualFileSeek(((WAVE_SRC*)s->dataplus)->fp, ((WAVE_SRC*)s->dataplus)->basefp, SEEK_SET);
 		else
 			((WAVE_SRC*)s->dataplus)->data = ((WAVE_SRC*)s->dataplus)->database;
 		((WAVE_SRC*)s->dataplus)->chunk_left = ((WAVE_SRC*)s->dataplus)->chunk_base;
-//	}
 }
 
 void oslAudioCallback_StopSound_WAV(OSL_SOUND *s)

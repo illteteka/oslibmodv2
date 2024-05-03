@@ -124,7 +124,6 @@ LIBOBJS :=					$(SFONTOBJS) \
 							$(SOURCE_DIR)/dialog.o \
 							$(SOURCE_DIR)/osk.o \
 							$(SOURCE_DIR)/saveload.o \
-							$(SOURCE_DIR)/net.o \
 							$(SOURCE_DIR)/browser.o \
 							$(SOURCE_DIR)/adhoc/pspadhoc.o \
 							$(SOURCE_DIR)/vfile/VirtualFile.o \
@@ -251,7 +250,6 @@ install: lib
 	install -m644 $(SOURCE_DIR)/libpspmath/pspmath.h $(DESTDIR)$(PSPDIR)/include/oslib/libpspmath/
 	install -m644 $(SOURCE_DIR)/adhoc/pspadhoc.h $(DESTDIR)$(PSPDIR)/include/oslib/adhoc/
 	install -m644 $(SOURCE_DIR)/oslmath.h $(DESTDIR)$(PSPDIR)/include/oslib/
-	install -m644 $(SOURCE_DIR)/net.h $(DESTDIR)$(PSPDIR)/include/oslib/
 	install -m644 $(SOURCE_DIR)/browser.h $(DESTDIR)$(PSPDIR)/include/oslib/
 	install -m644 $(SOURCE_DIR)/audio.h $(DESTDIR)$(PSPDIR)/include/oslib/
 	install -m644 $(SOURCE_DIR)/bgm.h $(DESTDIR)$(PSPDIR)/include/oslib/

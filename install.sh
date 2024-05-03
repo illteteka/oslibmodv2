@@ -27,7 +27,6 @@ cp -f Install/oslib/intraFont/libccc.h $PSPSDK/include/oslib/intraFont/
 cp -f Install/oslib/libpspmath/pspmath.h $PSPSDK/include/oslib/libpspmath/
 cp -f Install/oslib/adhoc/pspadhoc.h $PSPSDK/include/oslib/adhoc/
 cp -f Install/oslib/oslmath.h $PSPSDK/include/oslib/
-cp -f Install/oslib/net.h $PSPSDK/include/oslib/
 cp -f Install/oslib/browser.h $PSPSDK/include/oslib/
 cp -f Install/oslib/audio.h $PSPSDK/include/oslib/
 cp -f Install/oslib/bgm.h $PSPSDK/include/oslib/

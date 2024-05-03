@@ -232,6 +232,7 @@ oslPlaySound(jump, 2);
 //But the jump sound and the music are left unaffected.
 oslPlaySound(stomp, 1);
 \endcode */
+extern void oslSetPlaybackSpeed(int channel, float speed);
 extern void oslPlaySound(OSL_SOUND *s, int voice);
 /** Stops a sound currently playing. */
 extern void oslStopSound(OSL_SOUND *s);
