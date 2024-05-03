@@ -42,9 +42,9 @@ float playback_speed_1 = 1.0;
 void oslSetPlaybackSpeed(int channel, float speed)
 {
 	if (channel == 0)
-		playback_speed_0 = 1/speed; //idk anymore man, this is literally backwards land
+		playback_speed_0 = ((float)1/(speed/(float)2));
 	else if (channel == 1)
-		playback_speed_1 = 1/speed;
+		playback_speed_1 = ((float)1/(speed/(float)2));
 }
 
 /*void oslSetChannelVolume(int channel, int left, int right)
@@ -311,9 +311,9 @@ void oslDecodeWav(unsigned int i, void* buf, unsigned int length)
 		float playback_speed = 1.0; // Default playback speed
 
 		// Get playback speed for the specific channel
-		if (i == 1) // idk anymore man
+		if (i == 0)
 			playback_speed = playback_speed_0;
-		else if (i == 0)
+		else if (i == 1)
 			playback_speed = playback_speed_1;
 
 		if (wav->stream)
